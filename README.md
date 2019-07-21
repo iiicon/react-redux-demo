@@ -1,68 +1,114 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### 使用 redux
 
-## Available Scripts
+在顶层组件初始化 store
 
-In the project directory, you can run:
+- 我们通过 createStore(reducer) 创建 store
+- 我们通过 store.subscribe(render) 订阅事件
+- 我们通过 store.dispatch({type, payload}) 发布事件
 
-### `npm start`
+```
+const reducer = (state, action) => {
+  if (!state) {
+    return { n: 0 }
+  } else {
+    if (action.type === 'add') {
+      return { n: state.n + action.payload }
+    } else {
+      return state
+    }
+  }
+}
+const store = createStore(reducer)
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+const render = () => {
+  ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    document.getElementById('root')
+  )
+}
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+render()
+store.subscribe(render)
+```
 
-### `npm test`
+我们在顶层组件初始化 store，在需要的时候发布事件，但是我们遇到了一个问题，
+就是如果我们需要在子组件触发的话，就需要把事件一级级的传递下去，通过 props 上的事件去调用
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+这样有点累
 
-### `npm run build`
+当然我们也可以把 store 对象作为属性传递下去
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+store={store}
+```
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+这样取值
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+this.props.store.getState().n
+```
 
-### `npm run eject`
+这样是确实不用一级级传递事件了，但是我们却需要一级级传递 store，其实没有改变什么
+这个时候我们就需要一个东西来管理 store 对象的各个属性和状态
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### 使用 react-redux
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+- connect()
+- Provider
+- connectAdvanced()
+- batch()
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+我们主要用 Provider 组件和 connect 函数
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+第一步，给 Provider 一个 store
 
-## Learn More
+```
+<Provider store={store}>
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+第二步，用 connect 函数返回新的组件
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+export default connect(mapStateToProps, mapDispatchToProps)(App)
+```
 
-### Code Splitting
+第一个参数是用来初始化 state 的，接受一个 state，返回新的 state
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+```
+const mapStateToProps = state => {
+  return { n: state.n }
+}
+```
 
-### Analyzing the Bundle Size
+第二个参数可以写作函数也可以写成对象
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+```
+const mapDispatchToProps = dispatch => {
+  return {
+    add: () => {
+      dispatch({ type: 'add', payload: 1 })
+    },
+    onAdd2: () => {
+      dispatch({ type: 'add', payload: 2 })
+    }
+  }
+}
+<!-- 或者 -->
+const mapDispatchToProps = {
+  add: () => {
+    return { type: 'add', payload: 1 }
+  },
+  onAdd2: () => {
+    return { type: 'add', payload: 2 }
+  }
+}
 
-### Making a Progressive Web App
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+我们在调用的时候就可以直接 `this.props.add` 来触发事件了
 
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+这就是 react-redux 的使用，感叹 vuex 帮我们做了太多东西，有点香 XD

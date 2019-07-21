@@ -1,26 +1,59 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  add2() {
+    this.props.onAdd2()
+  }
+  add3() {
+    this.props.onAdd3()
+  }
+  add4() {
+    this.props.onAdd4()
+  }
+  render() {
+    return (
+      <div>
+        你点击了 <span id="value">{this.props.n}</span> 次
+        <div>
+          <button id="add1" onClick={() => this.props.add()}>
+            +1
+          </button>
+          <button id="add2" onClick={() => this.add2()}>
+            +2
+          </button>
+          <button id="add1IfOdd" onClick={() => this.add3()}>
+            如果是单数就+1
+          </button>
+          <button id="add1After2Sec" onClick={() => this.add4()}>
+            两秒钟后+1
+          </button>
+        </div>
+      </div>
+    )
+  }
 }
 
-export default App;
+const mapStateToProps = state => {
+  return { n: state.n }
+}
+const mapDispatchToProps = dispatch => {
+  return {
+    add: () => {
+      dispatch({ type: 'add', payload: 1 })
+    },
+    onAdd2: () => {
+      dispatch({ type: 'add', payload: 2 })
+    }
+  }
+}
+// const mapDispatchToProps = {
+//   add: () => {
+//     return { type: 'add', payload: 1 }
+//   },
+//   onAdd2: () => {
+//     return { type: 'add', payload: 2 }
+//   }
+// }
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
